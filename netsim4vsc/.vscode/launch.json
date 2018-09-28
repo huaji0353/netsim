@@ -8,7 +8,7 @@
             "name": "Python",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/tnetsim.py"
+            "program": "${file}"
         }
     ]
 }
