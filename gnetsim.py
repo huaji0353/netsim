@@ -7,26 +7,22 @@ from PySide import QtCore, QtGui
 import sys
 
 def log(string):
-	#log(string)
+	#print(string)
 	pass
 
 
-class RTmemu(QtGui.QMenu):
-	def __init__(self, parent):
-		super(RTmemu, self).__init__(parent)
-	
 class Node(QtGui.QLabel):
-	def __init__(self, parent, name, pos, pic):
+	def __init__(self, parent, types, pos, name=None):
 		super(Node, self).__init__(parent)
 		self.parent = parent
 		self.name = name
 		self.previousPosition = QtCore.QPoint()
 		self.move(pos)
 		
-		image = pic
+		image = QtGui.QImage("./icon/%s.png"%types)
 		self.setPixmap(QtGui.QPixmap.fromImage(image))
 		self.resize(image.width(), image.height())
-		
+
 	def mousePressEvent(self, event):
 		self.__mousePressPos = None
 		self.__mouseMovePos = None
@@ -35,9 +31,6 @@ class Node(QtGui.QLabel):
 			self.__mouseMovePos = event.globalPos()
 			self.raise_()
 			log("pl")
-		elif event.button() == QtCore.Qt.RightButton:
-			print(self.name)
-			#TODO
 
 	def mouseMoveEvent(self, event):
 		if event.buttons() == QtCore.Qt.LeftButton:
@@ -56,25 +49,50 @@ class Node(QtGui.QLabel):
 			moved = event.globalPos() - self.__mousePressPos 
 			if moved.manhattanLength() > 3:
 				event.ignore()
-				return
+				#return
 			log("r")
 
-class Root(QtGui.QWidget):
+	def contextMenuEvent(self, event):
+		menu = QtGui.QMenu(self)
+		menu.addAction(QtGui.QAction("&Add Link", self, triggered=self.parent.update))
+		menu.addAction(QtGui.QAction("&Del Link", self))
+		menu.exec_(event.globalPos())
+
+class View(QtGui.QGraphicsView):
 	def __init__(self, parent=None):
-		super(Root, self).__init__(parent)
+		super(View, self).__init__(parent)
 		self.items = []
 
 	def mousePressEvent(self, event):
+		#TODO#TODO#TODO#TODO#TODO#TODO
 		if event.buttons() == QtCore.Qt.RightButton:
-			self.additems("Router")
+			pass
 		if event.button() == QtCore.Qt.LeftButton:
-			self.additems("Pc")
-			#TODO
+			pass
 
-	def additems(self, types):
-		n = Node(self, types, QtCore.QPoint(10, 10), QtGui.QImage("./icon/%s.png"%types))
+	def contextMenuEvent(self, event):
+		menu = QtGui.QMenu(self)
+		menu.addAction(QtGui.QAction("&Add Pc", self, triggered=lambda:self.additems("Pc", event.pos())))
+		menu.addAction(QtGui.QAction("&Add Router", self, triggered=lambda:self.additems("Router", event.pos())))
+		menu.exec_(event.globalPos())
+
+	def additems(self, types, pos):
+		n = Node(self, types, pos)
 		n.show()
 		self.items.append(n)
+
+class Root(QtGui.QWidget):
+	def __init__(self):
+		super(Root, self).__init__()
+		self.layout = QtGui.QVBoxLayout()
+		self.setLayout(self.layout)
+		
+		self.view = View(self)
+		self.button = QtGui.QPushButton(parent=self)
+		
+		self.layout.addWidget(self.view)
+		self.layout.addWidget(self.button)
+
 
 if __name__ == "__main__":
 	app = QtGui.QApplication(sys.argv)
